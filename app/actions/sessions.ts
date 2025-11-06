@@ -180,18 +180,49 @@ export async function getAllUsersForSelection() {
 
 export async function getUserSessions(userId: string) {
   try {
-    const sessions = await getUserSessionsFromRedis(userId);
+    // Get all sessions with participants
+    const allSessionsWithParticipants = await getAllSessionsWithParticipants();
+    
+    // Get user's session IDs
+    const userSessionIds = await getUserSessionsFromRedis(userId);
+    const userSessionIdSet = new Set(userSessionIds.map(s => s.id));
+    
+    // Filter sessions where user is a participant
+    const userSessions = allSessionsWithParticipants.filter(
+      ({ session, participants }) => 
+        userSessionIdSet.has(session.id) || 
+        participants.some(p => p.user.id === userId)
+    );
 
     // Prisma formatına uygun hale getir (UI uyumluluğu için)
-    // Bu fonksiyon sadece session listesi döndürüyor, participants bilgisi yok
-    // Eğer participants bilgisi gerekiyorsa getSessions kullanılmalı
-    return sessions.map((session) => ({
-      id: session.id,
-      name: session.name,
-      createdAt: new Date(session.createdAt),
-      updatedAt: new Date(session.updatedAt),
-      createdById: session.createdById,
-    }));
+    return userSessions.map(
+      ({ session, createdBy, participants }) => ({
+        id: session.id,
+        name: session.name,
+        createdAt: new Date(session.createdAt),
+        updatedAt: new Date(session.updatedAt),
+        createdById: session.createdById,
+        allowedUserIds: session.allowedUserIds,
+        createdBy: {
+          id: createdBy.id,
+          username: createdBy.username,
+          createdAt: new Date(createdBy.createdAt),
+          updatedAt: new Date(createdBy.updatedAt),
+        },
+        participants: participants.map(({ participant, user }) => ({
+          id: participant.id,
+          userId: participant.userId,
+          sessionId: participant.sessionId,
+          joinedAt: new Date(participant.joinedAt),
+          user: {
+            id: user.id,
+            username: user.username,
+            createdAt: new Date(user.createdAt),
+            updatedAt: new Date(user.updatedAt),
+          },
+        })),
+      })
+    );
   } catch (error) {
     console.error("Get user sessions error:", error);
     return [];

@@ -276,9 +276,11 @@ function TaskList({
     }
   };
 
-  const handleCompletePatient = async () => {
+  const handleCompletePatient = () => {
     if (confirm("Bu hastayı bitirmek istediğinizden emin misiniz?")) {
-      await completeAction(patientId);
+      const formData = new FormData();
+      formData.append("patientId", patientId);
+      completeAction(formData);
     }
   };
 

@@ -58,7 +58,7 @@ export default function SessionList({
           session.allowedUserIds && session.allowedUserIds.length > 0;
         const canJoin =
           !isParticipant &&
-          (!hasRestriction || session.allowedUserIds?.includes(currentUserId));
+          (!hasRestriction || (session.allowedUserIds?.includes(currentUserId) ?? false));
 
         return (
           <div

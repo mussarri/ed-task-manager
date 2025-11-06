@@ -286,8 +286,15 @@ export async function cancelTask(taskId: string): Promise<TaskState> {
 }
 
 export async function completePatient(
-  patientId: string
+  prevState: PatientState | null,
+  formData: FormData
 ): Promise<PatientState> {
+  const patientId = formData.get("patientId") as string;
+
+  if (!patientId) {
+    return { error: "Hasta ID gereklidir" };
+  }
+
   try {
     const user = await getCurrentUser();
     if (!user) {

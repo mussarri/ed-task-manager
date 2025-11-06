@@ -13,29 +13,30 @@ import Link from "next/link";
 export default async function SessionDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/");
   }
 
-  const session = await getSessionById(params.id);
+  const session = await getSessionById(id);
 
   if (!session) {
     redirect("/");
   }
 
   // Kullanıcının bu oturuma katılıp katılmadığını kontrol et
-  const isParticipant = await isUserParticipant(user.id, params.id);
+  const isParticipant = await isUserParticipant(user.id, id);
 
   if (!isParticipant) {
     redirect("/");
   }
 
   const [patients, allUsers] = await Promise.all([
-    getPatients(params.id),
+    getPatients(id),
     getAllUsersForSelection(),
   ]);
 
@@ -50,13 +51,11 @@ export default async function SessionDetailPage({
             >
               ← Oturumlara Dön
             </Link>
-            <h1 className="text-3xl font-bold text-gray-800">
-              {session.name}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-800">{session.name}</h1>
           </div>
           <div className="flex items-center gap-3">
             {session.createdById === user.id && (
-              <EndSessionButton sessionId={params.id} />
+              <EndSessionButton sessionId={id} />
             )}
             <LogoutButton />
           </div>
@@ -68,7 +67,7 @@ export default async function SessionDetailPage({
               Kullanıcı Yönetimi
             </h2>
             <SessionUserManagement
-              sessionId={params.id}
+              sessionId={id}
               allowedUserIds={session.allowedUserIds}
               allUsers={allUsers}
             />
@@ -79,7 +78,7 @@ export default async function SessionDetailPage({
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Yeni Hasta Ekle
           </h2>
-          <CreatePatientForm sessionId={params.id} />
+          <CreatePatientForm sessionId={id} />
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">

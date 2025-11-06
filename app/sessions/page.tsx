@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '../actions/auth'
-import { getSessions, getUserSessions } from '../actions/sessions'
+import { getSessions, getUserSessions, getAllUsersForSelection } from '../actions/sessions'
 import SessionList from '../components/SessionList'
 import CreateSessionForm from '../components/CreateSessionForm'
 import LogoutButton from '../components/LogoutButton'
@@ -12,9 +12,10 @@ export default async function SessionsPage() {
     redirect('/')
   }
 
-  const [allSessions, userSessions] = await Promise.all([
+  const [allSessions, userSessions, allUsers] = await Promise.all([
     getSessions(),
     getUserSessions(user.id),
+    getAllUsersForSelection(),
   ])
 
   const userSessionIds = new Set(userSessions.map((s) => s.id))
@@ -34,7 +35,7 @@ export default async function SessionsPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        <CreateSessionForm />
+        <CreateSessionForm users={allUsers} />
 
         <div>
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
@@ -70,6 +71,7 @@ export default async function SessionsPage() {
     </div>
   )
 }
+
 
 
 
