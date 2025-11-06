@@ -308,11 +308,15 @@ function TaskList({
             {!task.cancelled && (
               <button
                 onClick={() => handleToggleTask(task.id)}
+                disabled={patientCompleted}
                 className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors mt-0.5 ${
-                  task.completed
+                  patientCompleted
+                    ? "bg-gray-200 border-gray-300 cursor-not-allowed opacity-50"
+                    : task.completed
                     ? "bg-green-500 border-green-500"
                     : "border-gray-300 hover:border-green-400"
                 }`}
+                title={patientCompleted ? "Bitmiş hastanın görevlerine dokunulamaz" : ""}
               >
                 {task.completed && (
                   <svg
@@ -359,7 +363,7 @@ function TaskList({
                 >
                   {task.name}
                 </span>
-                {!task.cancelled && !task.completed && (
+                {!task.cancelled && !task.completed && !patientCompleted && (
                   <button
                     onClick={() => handleCancelTask(task.id)}
                     className="text-xs px-2 py-1 text-red-600 hover:bg-red-100 rounded transition-colors"

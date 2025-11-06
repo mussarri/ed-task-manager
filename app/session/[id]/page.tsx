@@ -54,9 +54,6 @@ export default async function SessionDetailPage({
             <h1 className="text-3xl font-bold text-gray-800">{session.name}</h1>
           </div>
           <div className="flex items-center gap-3">
-            {session.createdById === user.id && (
-              <EndSessionButton sessionId={id} />
-            )}
             <LogoutButton />
           </div>
         </div>
@@ -88,7 +85,9 @@ export default async function SessionDetailPage({
           <PatientList patients={patients} />
         </div>
       </div>
+      <div className="py-2 mt-4 text-right">
+        {session.createdById === user.id && <EndSessionButton sessionId={id} />}
+      </div>
     </div>
   );
 }
-

@@ -139,7 +139,7 @@ export interface SessionParticipant {
 const patientKey = (id: string) => `patient:${id}`;
 const patientTcKey = (tcNo: string) => `patient:tc:${tcNo}`;
 const patientTasksKey = (patientId: string) => `patient:${patientId}:tasks`;
-const taskKey = (id: string) => `task:${id}`;
+export const taskKey = (id: string) => `task:${id}`;
 const patientsAllKey = () => "patients:all";
 
 const userKey = (id: string) => `user:${id}`;

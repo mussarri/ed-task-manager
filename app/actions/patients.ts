@@ -13,6 +13,8 @@ import {
   cancelTaskInRedis,
   completePatientInRedis,
   getUserById,
+  redis,
+  taskKey,
   type Patient,
   type Task,
 } from "@/lib/redis";
@@ -215,12 +217,22 @@ export async function addTask(
       return { error: "Giriş yapmanız gerekiyor" };
     }
 
+    // Check if patient is completed
+    const patientData = await getPatientWithTasks(patientId);
+    if (!patientData) {
+      return { error: "Hasta bulunamadı" };
+    }
+
+    if (patientData.patient.completed) {
+      return { error: "Bitmiş hastaya görev eklenemez" };
+    }
+
     await addTaskToPatient(patientId, taskName.trim(), user.id);
 
     // Get patient to find sessionId
-    const patientData = await getPatientWithTasks(patientId);
-    if (patientData) {
-      revalidatePath(`/session/${patientData.patient.sessionId}`);
+    const updatedPatientData = await getPatientWithTasks(patientId);
+    if (updatedPatientData) {
+      revalidatePath(`/session/${updatedPatientData.patient.sessionId}`);
     } else {
       revalidatePath("/");
     }
@@ -238,16 +250,34 @@ export async function toggleTask(taskId: string): Promise<TaskState> {
       return { error: "Giriş yapmanız gerekiyor" };
     }
 
-    const task = await toggleTaskInRedis(taskId, user.id);
-
-    if (!task) {
+    // First get task to find patient
+    const taskData = await redis.get(taskKey(taskId));
+    if (!taskData) {
       return { error: "Görev bulunamadı" };
     }
 
-    // Get patient to find sessionId
+    const task = JSON.parse(taskData) as Task;
+
+    // Check if patient is completed
     const patientData = await getPatientWithTasks(task.patientId);
-    if (patientData) {
-      revalidatePath(`/session/${patientData.patient.sessionId}`);
+    if (!patientData) {
+      return { error: "Hasta bulunamadı" };
+    }
+
+    if (patientData.patient.completed) {
+      return { error: "Bitmiş hastanın görevlerine dokunulamaz" };
+    }
+
+    const updatedTask = await toggleTaskInRedis(taskId, user.id);
+
+    if (!updatedTask) {
+      return { error: "Görev güncellenemedi" };
+    }
+
+    // Get patient to find sessionId
+    const updatedPatientData = await getPatientWithTasks(task.patientId);
+    if (updatedPatientData) {
+      revalidatePath(`/session/${updatedPatientData.patient.sessionId}`);
     } else {
       revalidatePath("/");
     }
@@ -265,16 +295,34 @@ export async function cancelTask(taskId: string): Promise<TaskState> {
       return { error: "Giriş yapmanız gerekiyor" };
     }
 
-    const task = await cancelTaskInRedis(taskId, user.id);
-
-    if (!task) {
+    // First get task to find patient
+    const taskData = await redis.get(taskKey(taskId));
+    if (!taskData) {
       return { error: "Görev bulunamadı" };
     }
 
-    // Get patient to find sessionId
+    const task = JSON.parse(taskData) as Task;
+
+    // Check if patient is completed
     const patientData = await getPatientWithTasks(task.patientId);
-    if (patientData) {
-      revalidatePath(`/session/${patientData.patient.sessionId}`);
+    if (!patientData) {
+      return { error: "Hasta bulunamadı" };
+    }
+
+    if (patientData.patient.completed) {
+      return { error: "Bitmiş hastanın görevlerine dokunulamaz" };
+    }
+
+    const updatedTask = await cancelTaskInRedis(taskId, user.id);
+
+    if (!updatedTask) {
+      return { error: "Görev iptal edilemedi" };
+    }
+
+    // Get patient to find sessionId
+    const updatedPatientData = await getPatientWithTasks(task.patientId);
+    if (updatedPatientData) {
+      revalidatePath(`/session/${updatedPatientData.patient.sessionId}`);
     } else {
       revalidatePath("/");
     }

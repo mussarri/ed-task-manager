@@ -58,17 +58,20 @@ export default function SessionList({
           session.allowedUserIds && session.allowedUserIds.length > 0;
         const canJoin =
           !isParticipant &&
-          (!hasRestriction || (session.allowedUserIds?.includes(currentUserId) ?? false));
+          (!hasRestriction ||
+            (session.allowedUserIds?.includes(currentUserId) ?? false));
 
         return (
           <div
             key={session.id}
             className={`bg-white rounded-lg shadow-sm p-4 border border-gray-200 ${
-              isParticipant ? "cursor-pointer hover:shadow-md transition-shadow" : ""
+              isParticipant
+                ? "cursor-pointer hover:shadow-md transition-shadow"
+                : ""
             }`}
             onClick={() => handleSessionClick(session.id, isParticipant)}
           >
-            <div className="flex items-start justify-between">
+            <div className="items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-semibold text-gray-800">
@@ -120,23 +123,22 @@ export default function SessionList({
                   )}
                 </div>
               </div>
-              {showJoinButton && !isParticipant && (
-                <JoinSessionButton
-                  sessionId={session.id}
-                  canJoin={canJoin}
-                />
-              )}
-              {isParticipant && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/session/${session.id}`);
-                  }}
-                  className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
-                >
-                  Giriş Yap
-                </button>
-              )}
+              <div className="text-right">
+                {showJoinButton && !isParticipant && (
+                  <JoinSessionButton sessionId={session.id} canJoin={canJoin} />
+                )}
+                {isParticipant && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/session/${session.id}`);
+                    }}
+                    className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                  >
+                    Giriş Yap
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );
